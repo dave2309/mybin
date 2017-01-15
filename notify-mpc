@@ -1,0 +1,14 @@
+#!/bin/bash
+
+saveIFS="$IFS"
+IFS=''
+frm='[%title%[\n%artist%][\n%album%][\n%track%][\n%time%]]|[%file%]'
+#frm='{%t}{%N}{\n%a}{\n%b}{\n%l}|{%f}'
+cpa='/media/audiotek/music'
+spa=$(ncmpcpp --now-playing %D)
+#cov=$(ls ${cpa}/${spa}/*.jpg)
+#echo $cov
+msg=$(mpc --format=${frm} |head -n -2)
+#msg=$(ncmpcpp --now-playing ${frm})
+notify-send "${msg}" --icon=~/Pitures/mpd_client.png
+IFS=$saveIFS

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+adb kill-server
+adb start-server
+
+for file in $1*
+do
+    adb push $file /storage/extSdCard/Videos/
+done
+adb kill-server

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+for file in $(sudo find /etc -name "*.pacnew" )
+do
+    NEWCONF="$file"
+    CURCONF="${file%.pacnew}"
+
+    if [ -f $CURCONF ]
+    then
+        sudo vimdiff $CURCONF $NEWCONF
+        read -p "Do you want to use new file for $CURCONF? " yn
+        case $yn in
+            [Yy]* )
+                sudo rm $CURCONF
+                sudo mv $NEWCONF $CURCONF
+                ;;
+            [Nn]* )
+                echo 'Next time maybe...'
+                ;;
+            * )
+                echo "I don't understand that '$yn', Say Yes or No"
+                ;;
+        esac
+    fi
+done
+echo "All done!"

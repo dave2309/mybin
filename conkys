@@ -1,0 +1,8 @@
+#!/bin/bash
+
+/usr/bin/conky -d -c ~/.clock.conkyrc
+/usr/bin/conky -d -c ~/.usage.conkyrc
+/usr/bin/conky -d -c ~/.net.conkyrc
+/usr/bin/conky -d -c ~/.pacman.conkyrc
+/usr/bin/conky -d -c ~/.temp.conkyrc
+/usr/bin/conky -d -c ~/.system.conkyrc

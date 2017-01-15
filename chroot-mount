@@ -1,0 +1,6 @@
+#!/bin/bash
+
+mount -t proc proc /$1/proc
+mount -t sysfs sys /$1/sys
+mount -o bind /dev /$1/dev
+mount -t devpts pts /$1/dev/pts

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+if [ ! -d ./small ]; then
+	mkdir small
+fi
+for f in *.JPG; do convert -verbose -resize 40% $f small/${f%.JPG}-small.jpg; done

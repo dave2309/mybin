@@ -1,0 +1,3 @@
+#!/bin/bash
+
+ssh music!harlie bin/restart_avahi

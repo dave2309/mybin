@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<jnlp spec="1.0+" codebase="https://178.33.66.209/admin/public" href="https://178.33.66.209/admin/public/startup.jnlp">
+  <information>
+    <title>ASDM Startup Wizard on 178.33.66.209</title>
+    <vendor>Cisco Systems, Inc.</vendor>
+    <homepage href="http://www.cisco.com/go/asdm"/>
+    <description>ASDM Startup Wizard on 178.33.66.209</description>
+    <description kind="short">ASDM Startup Wizard on 178.33.66.209</description>
+    <description kind="tooltip">ASDM Startup Wizard on 178.33.66.209</description>
+    <icon href="asdm32.gif"/>
+    <offline-allowed/>
+  </information>
+
+  <security>
+    <all-permissions/>
+  </security>
+
+  <resources>
+    <j2se version="1.6+" initial-heap-size="64m" max-heap-size="256m"/>
+    <jar href="dm-launcher.jar" main="true" download="eager"/>
+    <jar href="lzma.jar" download="eager"/>
+    <jar href="jploader.jar" download="eager"/>
+    <jar href="retroweaver-rt-2.0.jar" download="eager"/>
+    <property name="http.agent" value="ASDM/"/>
+  </resources>
+
+  <application-desc main-class="com.cisco.launcher.Launcher">
+      <argument>/webstart</argument>
+      <argument>178.33.66.209</argument>
+      <argument>/asdm.runStartupWizard=true</argument>
+  </application-desc>
+
+</jnlp>

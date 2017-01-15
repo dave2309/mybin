@@ -1,0 +1,6 @@
+#!/bin/bash
+
+res=$(pacman -Qu|wc -l)
+
+[[ "$res" == "0" ]] && echo "No updates $msg" || echo "$res updates pending"
+[[ "$res" != "0" ]] && notify-send -t 2000 "$res updates available"

@@ -1,0 +1,43 @@
+#!/bin/bash
+
+isrun=$(pidof -s mpd)
+saveIFS="$IFS"
+IFS=''
+audiotek="/media/audiotek"
+remount=1
+to=1000
+
+if [ -n "$isrun" ]; then
+    notify-send -t $to 'Stopping MPD'
+	# killall mpd
+    mpd $audiotek/mpd/mpd.conf --kill
+    audiotekdev=$(blkid -L audiotek)
+    audiotekmnt=$(lsblk -n -o mountpoint $audiotekdev)
+    notify-send -t $to "unmount $audiotek"
+    udiskie-umount -q $audiotekmnt
+else
+    audiotekdev=$(blkid -L audiotek)
+    if [[ -b $audiotekdev ]]; then
+        audiotekmnt=$(lsblk -n -o mountpoint $audiotekdev)
+        if [[ "$audiotekmnt" != "$audiotek" ]]; then
+            if [[ "$audiotekmnt" != "" ]]; then
+                notify-send -t $to "Cleanup $audiotek"
+                echo "m: $audiotekmnt"
+                udiskie-umount -q $audiotekmnt
+                # delete other old mountpoints
+                sudo rmdir $audiotek*
+            fi
+            notify-send -t $to "Mounting $audiotek"
+            udiskie-mount -q $audiotekdev
+        fi
+        notify-send -t $to 'Launching MPD'
+        mpd $audiotek/mpd/mpd.conf 2>&1 >/dev/null
+        msg='launched'
+    else
+        notify-send -t $to "AudioTek is not present, exiting..."
+        exit 0
+    fi
+fi
+
+notify-send -t $to 'Done'
+IFS=$saveIFS

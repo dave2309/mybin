@@ -1,0 +1,8 @@
+#!/bin/bash
+
+echo -e "Trash size: $(du -sh ~/.local/share/Trash)"
+
+if [[ "$1" = "-c" ]]; then
+	rm -rf ~/.local/share/Trash/* > /dev/null
+fi
+

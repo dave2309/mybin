@@ -1,0 +1,3 @@
+#!/bin/bash
+
+synclient palmdetect=1 fingerhigh=30 fingerlow=25 rtcornerbutton=2 horiztwofingerscroll=1 palmminwidth=20

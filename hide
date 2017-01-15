@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sudo chown root:root ~/Pictures/.Me{,2}

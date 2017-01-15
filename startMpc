@@ -1,0 +1,7 @@
+#!/bin/bash
+
+isrun=$(pidof -s mpd)
+if [ -z "$isrun" ]; then
+    toggleMpd
+fi
+urxvtc -e ncmpcpp

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+#electricsheep-saver &
+xbacklight -set 40 &

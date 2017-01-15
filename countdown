@@ -1,0 +1,23 @@
+#!/bin/bash
+
+p=$(pidof -o $$ -x countdown)
+
+if [ -n "$p" ]
+then
+	# echo "pid: $p"
+	kill -9 $p
+	echo "Countdown stopped"
+	/usr/bin/notify-send "Countdown stopped"
+	exit 1
+fi
+
+t=3600 # 1 Hour before action
+d=300  # 5min pause
+while [ $t -gt 0 ]
+do
+	echo "hibernate in $((t/60)) min"
+	/usr/bin/notify-send "Hibernate in $((t/60)) min"
+	sleep $d
+	t=$((t-$d))
+done
+/usr/bin/systemctl hibernate

@@ -1,0 +1,45 @@
+#!/bin/bash
+
+function usage(){
+	echo "usage: `basename $0` [css|js]"
+}
+
+if [ $# -eq 0 ]; then
+	usage
+fi
+
+if [ "$1" == "css" ]; then
+	for f in *-nc.css
+	do
+		if [ -e $f ]; then
+			yui-compressor --type css --charset UTF-8 -o ${f%-nc.css}-yc.css $f
+		fi
+	done
+	rm a.css > /dev/null 2>&1
+	cat main-yc.css > a.css
+	for f in *-yc.css
+	do
+		if [ -e $f ] && [ "$f" != "main-yc.css" ]; then
+			cat $f >> a.css
+		fi
+	done
+fi
+
+if [ "$1" == "js" ]; then
+	for f in *-nc.js
+	do
+		if [ -e $f ]; then
+            yui-compressor --type js --charset UTF-8 -o ${f%-nc.js}-yc.js $f
+		fi
+	done
+	rm a.js > /dev/null 2>&1
+	cat mootools-core*-yc.js > a.js
+	cat mootools-more*-yc.js >> a.js
+	for f in *-yc.js
+	do
+		if [[ -e $f ]] && [[ ! "$f" =~ ^mootools ]]; then
+			echo $f
+			cat $f >> a.js
+		fi
+	done
+fi

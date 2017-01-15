@@ -1,0 +1,53 @@
+#!/bin/bash
+
+BCKVOL="/media/BACKUP"
+BCKDIR="backups"
+BCKDEV="/dev/disk/by-label/BACKUP"
+BCKTST=".backup"
+echo "-==============-"
+echo " Backup Utility"
+echo '-==============-'
+echo "Checking for backup volume to be mounted, Ctrl-C to cancel and exit"
+while [ ! -f $BCKDEV ] && [ -z "$(mount|grep $BCKVOL)" ]; do
+    echo -e "*\c"
+    sleep 2
+done
+
+if [[ -f $BCKVOL/$BCKDIR/$BCKTST ]]; then
+    echo "Space used $(di -nf 'p' $BCKVOL)"
+else
+    echo "Backup volume does not seem to be the good one"
+    exit 1
+fi
+
+read -p "Backup $HOME now?" yn
+case $yn in
+    [Yy]* )
+        echo "Ok, let's do this"
+        ;;
+    [Nn]* )
+        echo 'Next time maybe...'
+        exit 0
+        ;;
+    * )
+        echo "I don't understand that '$yn', Say Yes or No"
+        exit 1
+        ;;
+esac
+echo "Start backup..."
+# rsync -aAXv --exclude={"/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} /* /path/to/backup/folder
+echo "* Doing home of $USER"
+if [[ ! -d $BCKVOL/$BCKDIR/home/$USER ]]; then
+    mkdir -p $BCKVOL/$BCKDIR/home/$USER
+fi
+rsync -aAXv --delete --exclude={"$HOME/.cache","$HOME/.thumbnails","$HOME/.local/share/Trash"} $HOME/* $BCKVOL/$BCKDIR/home/$USER/
+
+echo "================================================================"
+echo "* Doing /srv/http "
+if [[ ! -d $BCKVOL/$BCKDIR/data ]]; then
+    mkdir $BCKVOL/$BCKDIR/data
+fi
+rsync -aAXv /srv/http $BCKVOL/$BCKDIR/data/
+
+
+

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+while :; do
+    pkill xscreensaver
+
+    # If you want to be really fancy:
+    notify-send "Screensaver Disabled" $"The Flash plugin is running"
+
+    while ps ax | grep libflashplayer.so | grep -v grep >/dev/null; do
+          sleep 1 # Sleep while waiting for Flash to exit
+    done
+
+    xscreensaver -nosplash &
+
+    # If you want to be really fancy:
+    notify-send "Screensaver Enabled" $"The Flash plugin has exited"
+
+    sleep 30
+done

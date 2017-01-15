@@ -1,0 +1,7 @@
+#!/bin/bash
+
+sudo modprobe -r psmouse
+sleep 1
+sudo modprobe psmouse
+sleep 1
+synclient palmdetect=1 rtcornerbutton=2 fingerhigh=50 fingerlow=49 horiztwofingerscroll=1 palmminwidth=15 pressuremotionmaxfactor=1 pressuremotionminfactor=1 emulatetwofingerminw=15 emulatetwofingerminz=400

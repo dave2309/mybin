@@ -1,0 +1,8 @@
+## or via ConsoleKit
+
+zenity --width=90 --height=250 --question --text="Available Updates:\n\n$(pacman -Qu)" --title="System Updates"
+
+if [[ $? == 0 ]]; then
+	urxvtc -e sudo pacman -Su
+fi
+

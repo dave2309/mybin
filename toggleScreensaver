@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if pgrep screensaver ; then
+	pkill xscreensaver
+    notify-send "Screensaver Disabled"
+else
+	xscreensaver -nosplash &
+    notify-send "Screensaver Enabled"
+fi
+

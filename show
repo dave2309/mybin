@@ -1,0 +1,3 @@
+#!/bin/bash
+
+sudo chown dave:dave ~/Pictures/.Me{,2}

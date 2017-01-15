@@ -1,0 +1,3 @@
+#!/bin/bash
+
+rdesktop-vrdp -udave -p rT42hNdG8 -g 1024x768 -K -a16 -P winadm

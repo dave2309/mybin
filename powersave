@@ -1,0 +1,105 @@
+#!/bin/bash
+# Get Name
+name=`basename $0`
+syscat="systemd-cat -t $name -p"
+storebrightness='/tmp/brightness'
+
+# Get parameters
+if [ $# -eq 0 ]
+then
+    echo "parameter on/off expected" | $syscat alert
+    exit 1
+fi
+state="$1"
+
+if [ -z "$2" ]
+then
+    method="clock"
+    hour=$(date +%H)
+    ([[ $hour -gt 7 && $hour -lt 17 ]]) && daytime=1 || daytime=0
+else
+    method="argument"
+    daytime=$2
+fi
+echo "period daytime is: $daytime ($method)" | $syscat info
+
+
+# Sys Path
+sys_lcd_max_bright="/sys/class/backlight/intel_backlight/max_brightness"
+sys_lcd_cur_bright="/sys/class/backlight/intel_backlight/actual_brightness"
+sys_kbd_max_bright="/sys/devices/platform/dell-laptop/leds/dell::kbd_backlight/max_brightness"
+sys_kbd_cur_bright="/sys/devices/platform/dell-laptop/leds/dell::kbd_backlight/brightness"
+# this one is writable
+sys_lcd_bright="/sys/class/backlight/intel_backlight/brightness"
+
+# Get values
+lcd_max_bright=$(cat $sys_lcd_max_bright)
+lcd_cur_bright=$(cat $sys_lcd_cur_bright)
+kbd_max_bright=$(cat $sys_kbd_max_bright)
+kbd_cur_bright=$(cat $sys_kbd_cur_bright)
+
+# Display value in journal
+echo -e "LCD\ncur: $lcd_cur_bright\nmax: $lcd_max_bright\nKBD\ncur: $kbd_cur_bright\nmax: $kbd_max_bright" | $syscat info
+# settings up a tmp file
+#echo lcd_max_bright > /tmp/brightness
+#echo lcd_cur_bright >> /tmp/brightness
+#echo
+# new values
+echo "battery: $state"| $syscat info
+
+daytime=0
+if [[ $daytime -eq 1 ]]; then
+    if [[ "$state" == "on" ]]; then
+        # we only change current brightness if > 50%
+        if [[ $lcd_cur_bright > $(($lcd_max_bright/2)) ]]; then
+            echo "storing current brightnes value" | $syscat info
+            echo $lcd_cur_bright > $storebrightness
+
+            echo "Brightness over 50% reducing..."| $syscat info
+            for i in $(seq 1 $(($lcd_cur_bright/2)))
+            do
+                echo $(($lcd_cur_bright - $i)) > $sys_lcd_bright
+            done
+        else
+            echo "Brightness under 50% no change..."| $syscat info
+        fi
+
+        # brightness keyboard
+        echo 1 > $sys_kbd_cur_bright
+
+        # ethernet
+        eth_status=$(ifplugstatus |grep enp5s0|cut -d: -f2)
+        if [[ $eth_status == ' unplugged' ]]; then
+            echo "removing r8169 driver..." | $syscat info
+            modprobe -r r8169
+        fi
+    elif [[ "$state" == "off" ]]; then
+        # restore brightness
+        brightness=$lcd_max_bright
+        if [[ -f $storebrightness ]]
+        then
+            brightness=$(cat $storebrightness)
+            echo "retrieve previously stored brightness: $brightness "| $syscat info
+        fi
+
+        echo "restoring brightness to $brightness" | $syscat info
+        for i in $(seq $lcd_cur_bright $brightness)
+        do
+            echo $i > $sys_lcd_bright
+        done
+        #echo $brightness > $sys_lcd_bright
+        #echo $lcd_max_bright > /sys/class/backlight/intel_backlight/brightness
+
+        # brightness keyboard
+        #echo $kbd_max_bright > /sys/devices/platform/dell-laptop/leds/dell\:\:kbd_backlight/brightness
+
+        # ethernet
+        #echo "load r8198 driver" | $syscat info
+        #modprobe r8169
+    else
+        echo "unknown parameter: $state, exiting..."| $syscat alert
+    fi
+else
+    echo "brightness routed to redshift because of period $period, existing..."| $syscat info
+fi
+

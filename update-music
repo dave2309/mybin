@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo chmod -R 775 /media/audiotek/music
+sudo chgrp -R users /media/audiotek/music

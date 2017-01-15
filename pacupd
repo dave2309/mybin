@@ -1,0 +1,20 @@
+#!/bin/bash
+
+dbpath="/var/lib/pacman/db.lck"
+skype_client=
+skype_running=$(pactl list short source-outputs|cut -d$'\t' -f3|grep ^$(pactl list short clients |grep skype|cut -d$'\t' -f1)$)
+
+if [[ -f $dbpath ]]; then
+    notify-send "pacman running (db lock)"
+    exit 0
+elif [[ -n $skype_running ]]; then
+    notify-send "skype running hold sync."
+    exit 0
+fi
+
+status=$(ifplugstatus|grep -v ^lo|grep -v ^tun|grep -v ^ppp|grep -v unplugged)
+
+if [[ -n $status ]]; then
+    notify-send "retrieve pacman updates"
+    yaourt -Sy
+fi

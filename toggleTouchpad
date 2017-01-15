@@ -1,0 +1,5 @@
+#!/bin/bash
+
+TS=$(synclient -l|grep -i touchpadoff|cut -d'=' -f2|sed -e 's/^\ +//g')
+echo "synclient touchpadoff=$((1-$TS))"
+synclient touchpadoff=$((1-$TS))
