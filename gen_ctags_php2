@@ -1,0 +1,9 @@
+#!/bin/bash
+
+FLAG='no'
+if [[ $# -eq 1 ]]; then
+    FLAG='yes'
+fi
+#ctags --verbose=$FLAG --totals=$FLAG --recurse=yes --language-force=PHP --recurse -f ./.php.tags -L ./.ctags.php.inc --exclude=@./.ctags.php.exc
+ctags --verbose=$FLAG --totals=$FLAG --recurse=yes --fields=+aimlS --language-force=php -f ./.php.tags -L ./.ctags.php.inc --exclude=@./.ctags.php.exc
+#phpctags -R -f ./.php.tags -L ./.ctags.php.inc --exclude=@./.ctags.php.exc
