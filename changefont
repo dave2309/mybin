@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+echo -e "\033]50;xft:Meslo LG L DZ for Powerline:size=10\007"
+echo -e "\uXXXXX"

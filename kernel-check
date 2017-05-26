@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+repo='artful'
+LAST=$(git ls-remote git://kernel.ubuntu.com/ubuntu/ubuntu-$repo.git |awk '{print $2}'|grep -v HEAD|sed -e '/\^{}$/d;s/refs\/\(tags\|heads\)\///g;/^Ubuntu-[0-9]\{1,2\}\.[0-9]\{1,2\}\.[0-9]\{1,2\}-[0-9]\{1,2\}\.[0-9]\{1,2\}/!d;s/Ubuntu-//g'|sort -t. -k3n -k2n -k1n -k4n|tail -1)
+
+KVER=$(uname -rv|sed -r 's/^([0-9]+\.[0-9]+\.[0-9]+-[0-9]+).*#([0-9]+).*/\1\.\2/g')
+
+if [[ "$LAST" != "$KVER" ]]; then
+    echo "Maybe we have a winner: $LAST"
+    if [ "$1" == "-n" ]; then
+        notify-send "Kernel" "New Kernel: $KVER"
+    fi
+else
+    echo "Not yet"
+fi

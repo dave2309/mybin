@@ -1,0 +1,78 @@
+#!/bin/bash
+
+# Functions
+function syntax() {
+    echo "Error: $1"
+    echo "Usage: `basename $0` [-q] -t <IP> -s <source_folder> -r <remote_folder>"
+    exit 1
+}
+
+function config() {
+    echo "Using the following configuration:"
+    echo "- watcher : $WATCHPRG"
+    echo "- events  : $WATCHEVT"
+    echo "- excludes: $WATCHEXC"
+    echo "- action  : $WATCHCMD"
+    echo "- watchcmd: $CMD"
+}
+
+# Check arguments
+if [[ $# -lt 1 ]]; then
+    syntax 'Missing parameters'
+fi
+
+# check other arguments if any
+VERBOSE=1
+while getopts ":qr:s:t:" opt
+do
+    case $opt in
+        q) VERBOSE=0
+            ;;
+        r) PROJNAME="$OPTARG"
+            ;;
+        s) SRCFOLDR="$OPTARG"
+            ;;
+        t) RSYNCTRG="$OPTARG"
+            ;;
+        :) echo "Option $OPTARGS requires a value"
+            exit 1
+            ;;
+    esac
+done
+
+# Configuration
+WATCHPRG="$(which inotifywait)"
+WATCHCMD="$HOME/bin/tom_rsync -t $RSYNCTRG -s $SRCFOLDR -r $PROJNAME"
+WATCHEVT="modify,attrib,move,create,delete"
+#WATCHEXC="(\.git|\.gitignore|\.gitattributes|\.idea|\.vagrant|puppet|composer\.lock|composer\.json|\.editorconfig|README|README\.md|\.travis\.yml)"
+#WATCHEXC="^(src|config|app|webroot)"
+#WATCHOPT="--monitor --recursive --format '%:e %w%f' --exclude '$WATCHEXC' --event '$WATCHEVT'"
+WATCHOPT="--quiet --recursive --format '%w %:e' --event '$WATCHEVT'"
+
+# Check arguments validity
+SUBS='app src webroot config test cake build'
+for SUB in ${SUBS}
+do
+    [ -d $SRCFOLDR$SUB ] || SUBS=$(echo $SUBS| sed "s/$SUB//")
+done
+SUBS=$(echo $SUBS|sed 's/ +//g;s/ /,/g;s/^/{/;s/$/}/')
+SRCFOLDR=$SRCFOLDR$SUBS
+echo "subs to watch: $SUBS"
+# Prepare command
+CMD="$WATCHPRG $WATCHOPT $SRCFOLDR"
+
+# Show configuration
+[[ $VERBOSE -eq 1 ]] && config
+
+# Start
+while true
+do
+    while eval $CMD
+    do
+        eval $WATCHCMD
+    done
+done
+#eval $CMD | while read CHANGE
+#do
+    #echo "$CHANGE" && eval $WATCHCMD
+#done

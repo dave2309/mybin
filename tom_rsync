@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Functions
+function syntax() {
+    echo "Error: $1"
+    echo "Usage: `basename $0` [-q] -t <IP> -s <source_folder> -r <remote_folder>"
+    exit 1
+}
+
+function config() {
+    echo "Using the following configuration:"
+    echo "- project : $PROJNAME"
+    echo "- base    : $SRCFOLDR"
+    echo "- includes: $INCLDIRS"
+    echo "- excludes: $EXCLDIRS"
+    echo "- filtersP: $EXCFILTS"
+    echo "- filtersH: $HIDFILTS"
+    echo "- rsyncmod: $RSYNCMOD"
+    echo "- target  : $RSYNCTRG"
+    echo "- rsync   : $CMD"
+}
+
+# Check arguments
+if [[ $# -lt 1 ]]; then
+    syntax 'Missing parameters'
+fi
+
+# check other arguments if any
+VERBOSE=1
+while getopts ":qr:s:t:" opt
+do
+    case $opt in
+        q) VERBOSE=0
+            ;;
+        r) PROJNAME="$OPTARG"
+            ;;
+        s) SRCFOLDR="$OPTARG"
+            ;;
+        t) RSYNCTRG="$OPTARG"
+            ;;
+        :) echo "Option $OPTARGS requires a value"
+            exit 1
+            ;;
+    esac
+done
+
+# Configuration
+#PROJNAME="$(basename $SRCFOLDR)"
+INCLDIRS='app cake lib bin config plugins src tests vendor webroot build'
+#INCFILES='Vagrantfile README'
+#INCFILES='index.php composer.json composer.lock'
+INCFILES='index.php package.json composer.* webpack.*'
+EXCLDIRS='tmp logs webroot/min app/webroot/min puppet app/tmp app/tmp/logs'
+EXCFILES='*.tags .ctags.* *.cache'
+EXCFILTS='vendor tmp/*** logs/*** build/*** webroot/min/*** app/webroot/min/*** app/tmp/*** app/tmp/logs/*** ***/node_modules'
+#HIDFILTS='vendor tmp/*** logs/*** app/tmp/*** app/logs/*** build/*** webroot/min/***'
+HIDFILTS='vendor tmp logs app/tmp app/logs build webroot/min'
+RSYNCCMD=$(which rsync)
+RSYNCMOD='tom'
+RSYNCUSR='vagrant'
+RSYNCPWD="$HOME/bin/rsync.pwd"
+
+# Check if source exists
+if [[ ! -d "$SRCFOLDR" ]]; then
+    syntax "Project <$SRCFOLDR> directory not found"
+fi
+
+# Build rsync options
+RSYNC_OPTIONS='--compress --archive --omit-dir-times --human-readable --delete-after '
+for EXC in $EXCLDIRS; do
+    #RSYNC_OPTIONS+="--exclude='$EXC/*' "
+    RSYNC_OPTIONS+="--exclude='$EXC' "
+done
+for EXC in $EXCFILES; do
+    RSYNC_OPTIONS+="--exclude='$EXC' "
+done
+for FLT in $HIDFILTS; do
+    RSYNC_OPTIONS+="--filter='hide $FLT' "
+done
+for FLT in $EXCFILTS; do
+    RSYNC_OPTIONS+="--filter='protect $FLT' "
+done
+for INC in $INCLDIRS; do
+    RSYNC_OPTIONS+="--include='$INC/***' "
+    #RSYNC_OPTIONS+="--include='$INC' "
+done
+for INC in $INCFILES; do
+    RSYNC_OPTIONS+="--include='$INC' "
+done
+RSYNC_OPTIONS+="--exclude='*' "
+RSYNC_OPTIONS+="--password-file=$RSYNCPWD"
+
+# Prepare command
+CMD="$RSYNCCMD ${RSYNC_OPTIONS[@]} $SRCFOLDR $RSYNCUSR@$RSYNCTRG::$RSYNCMOD/$PROJNAME/"
+
+# Show configuration
+[[ $VERBOSE -eq 1 ]] && config
+
+# Do rsync
+eval $CMD

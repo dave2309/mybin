@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+if [ $# -gt 0 ]; then
+    VER="$1"
+    [[ -z $2 ]] && TYPE="i7" || TYPE="$2"
+
+    sudo dpkg -i linux-headers-${VER%.*}_${VER}_all.deb \
+        linux-headers-${VER%.*}-${TYPE}_${VER}_amd64.deb \
+        linux-image-${VER%.*}-${TYPE}_${VER}_amd64.deb \
+        linux-tools-common_${VER}_all.deb \
+        linux-tools-${VER%.*}_${VER}_amd64.deb \
+        linux-tools-${VER%.*}-${TYPE}_${VER}_amd64.deb
+else
+    echo 'Version needed'
+    exit 1
+fi
+
+

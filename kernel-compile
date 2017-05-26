@@ -1,0 +1,118 @@
+#!/usr/bin/env bash
+
+#cd ubuntu-xenial
+repo='artful'
+
+# Clean up
+git reset --hard > /dev/null 2>&1
+git clean -fd -x > /dev/null 2>&1
+git checkout master > /dev/null 2>&1
+git fetch > /dev/null 2>&1
+
+# checkout last
+[[ -n $1 ]] && LAST=$1 || LAST=$(git ls-remote git://kernel.ubuntu.com/ubuntu/ubuntu-$repo.git |awk '{print $2}'|grep -v HEAD|sed -e '/\^{}$/d;s/refs\/\(tags\|heads\)\///g;/^Ubuntu-[0-9]\{1,2\}\.[0-9]\{1,2\}\.[0-9]\{1,2\}-[0-9]\{1,2\}\.[0-9]\{1,2\}/!d'|sort -t. -k3n -k2n -k1n -k4n|tail -1)
+
+VER=${LAST#Ubuntu-}
+
+echo -n "Proceding with branch: $LAST [y/N]?"
+read q
+
+if [[ "$q" =~ [^yYnN] ]]; then
+    echo "Wrong answer exiting..."
+    exit 0
+elif [[ "$q" =~ [nN] ]]; then
+    echo "Maybe next time..."
+    exit 0
+fi
+
+
+if [ -n "$(git branch |grep $LAST)" ]; then
+    git branch -D $LAST
+fi
+echo "Checkout branch $LAST"
+git checkout -b $LAST $LAST
+
+echo "Permissions on Debian scripts"
+#make debian/rules as executable
+chmod a+x debian/rules > /dev/null 2>&1
+#make debian/scripts directory executable
+chmod a+x debian/scripts/* > /dev/null 2>&1
+chmod a+x debian/scripts/misc/* > /dev/null 2>&1
+
+# edit config just for amd64
+#sed -i s/archs=\"amd64.*$/archs=\"amd64\"/g debian.master/etc/kernelconfig
+echo "Patch kernel config"
+patch -p0 < ../patches/kernelconfig_amd64only.patch > /dev/null 2>&1
+
+#create i7 flavor
+echo "Patch flavour i7"
+cp debian.master/config/amd64/config.flavour.lowlatency debian.master/config/amd64/config.flavour.i7 > /dev/null 2>&1
+patch -p0 < ../patches/config.flavour.i7.patch > /dev/null 2>&1
+#exit 1
+#sed -i "s/CONFIG_HZ_250=y/\#\ CONFIG_HZ_250\ is\ net\ set/g" debian.master/config/amd64/config.flavour.i7
+#sed -i "s/\#\ CONFIG_HZ_1000\ is\ net\ set//CONFIG_HZ_1000=y/g" debian.master/config/amd64/config.flavour.i7
+#sed -i "s/CONFIG_HZ=250/CONFIG_HZ=1000/g" debian.master/config/amd64/config.flavour.i7
+# delete the other ones
+#rm debian.master/config/amd64/config.flavour.{generic,lowlatency}
+#rm -rf debian.master/config/{arm64,armhf,i386,powerpc,ppc64el,s390x,x32}
+#exit 1
+#clean
+echo "Fakeroot clean"
+fakeroot debian/rules clean > /dev/null 2>&1
+#fakeroot debian/rules editconfigs
+echo "Fakeroot updateconfig"
+fakeroot debian/rules updateconfigs > /dev/null 2>&1
+
+#give y only to i7 flavor, leave the rest untouched
+#fakeroot debian/rules editconfigs
+
+#copy the abi entries for i7 flavor and add i7 entries in vars and amd64.mk
+#DIR=$(ls -d debian.master/abi/*/amd64)
+#cp $DIR/generic $DIR/i7
+#cp $DIR/generic.modules $DIR/i7.modules
+
+echo "Patch compile options"
+patch -p0 < ../patches/Makefile_32_i7.patch > /dev/null 2>&1
+patch -p0 < ../patches/Makefile_i7.patch > /dev/null 2>&1
+patch -p0 < ../patches/getabis_i7.patch > /dev/null 2>&1
+patch -p0 < ../patches/amd64.mk_i7.patch > /dev/null 2>&1
+#sed -i s/CONFIG_GENERIC_CPU\)\ \+=\ \$\(call\ cc-option,-mtune=generic/CONFIG_GENERIC_CPU\)\ \+=\ \$\(call\ cc-option,-mtune=native/g arch/x86/Makefile
+#sed -i s/CONFIG_X86_GENERIC\)\ .\+=\ \$\(call\ tune,generic,\$\(call\ tune,i686/CONFIG_X86_GENERIC\)\ +=\ \$\(call\ tune,native,\$\(call\ tune,native/g arch/x86/Makefile_32.cpu
+#sed -i s/getall\ amd64/getall\ i7\ amd64/g debian.master/etc/getabis
+#sed -i s/\=\ generic/\=\ i7\ generic/g debian.master/rules.d/amd64.mk
+echo "control version files"
+cp debian.master/control.d/vars.lowlatency debian.master/control.d/vars.i7 > /dev/null 2>&1
+patch -p0 < ../patches/vars.i7.patch > /dev/null 2>&1
+#sed -i s/\"Generic\"/\"core\ i7\"/g debian.master/control.d/vars.i7
+
+# Copy abi modules to previous version abi folder
+#PREVABIPATH=$(find debian.master/abi -mindepth 1 -maxdepth 1 -type d |head -n1)
+#cp -v debian.master/abi/$VER/i7.modules $PREVABIPATH/
+
+#Building the kernel
+#DEB_BUILD_OPTIONS=parallel=2 AUTOBUILD=1 NOEXTRAS=1 fakeroot debian/rules binary-i7
+#exit 1
+#fakeroot debian/rules binary-headers
+echo "Go compile"
+fakeroot debian/rules debian/control > /dev/null 2>&1
+skipabi=true skipmodule=true fakeroot debian/rules binary-i7 > /dev/null 2>&1
+skipabi=true skipmodule=true fakeroot debian/rules binary-perarch > /dev/null 2>&1
+skipabi=true skipmodule=true fakeroot debian/rules binary-indep > /dev/null 2>&1
+
+echo "Install"
+if [ $? -eq 0 ]; then
+    echo -n "Should I install packages for version $VER ?"
+    read q
+    if [[ "$q" =~ [^yYnN] ]]; then
+        echo "Wrong answer exiting..."
+        exit 0
+    elif [[ "$q" =~ [nN] ]]; then
+        echo "Maybe next time...(no installation)"
+        exit 0
+    fi
+    kernel-install $VER i7 > /dev/null 2>&1
+else
+    echo 'Problem during compilation'
+    exit 1
+fi
+
