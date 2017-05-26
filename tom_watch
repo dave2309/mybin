@@ -48,7 +48,7 @@ WATCHEVT="modify,attrib,move,create,delete"
 #WATCHEXC="(\.git|\.gitignore|\.gitattributes|\.idea|\.vagrant|puppet|composer\.lock|composer\.json|\.editorconfig|README|README\.md|\.travis\.yml)"
 #WATCHEXC="^(src|config|app|webroot)"
 #WATCHOPT="--monitor --recursive --format '%:e %w%f' --exclude '$WATCHEXC' --event '$WATCHEVT'"
-WATCHOPT="--recursive --format '%w %:e' --event '$WATCHEVT'"
+WATCHOPT="--quiet --quiet --recursive --format '%w %:e' --event '$WATCHEVT'"
 
 # Check arguments validity
 SUBS='app src webroot config test cake build'
@@ -58,7 +58,7 @@ do
 done
 SUBS=$(echo $SUBS|sed 's/ +//g;s/ /,/g;s/^/{/;s/$/}/')
 SRCFOLDR=$SRCFOLDR$SUBS
-echo "subs to watch: $SUBS"
+echo -e "subs to watch: \033[1;34m$SUBS\033[0m"
 # Prepare command
 CMD="$WATCHPRG $WATCHOPT $SRCFOLDR"
 
@@ -68,9 +68,11 @@ CMD="$WATCHPRG $WATCHOPT $SRCFOLDR"
 # Start
 while true
 do
+    echo -e "\033[1;33m...waiting for change...\033[0m\n"
     while eval $CMD
     do
         eval $WATCHCMD
+        echo -e "\n\033[1;33m...finish rsync...\033[0m\n"
     done
 done
 #eval $CMD | while read CHANGE
