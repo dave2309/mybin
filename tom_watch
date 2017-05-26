@@ -66,16 +66,10 @@ CMD="$WATCHPRG $WATCHOPT $SRCFOLDR"
 [[ $VERBOSE -eq 1 ]] && config
 
 # Start
-while true
+echo -e "\033[1;33m...waiting for change...\033[0m\n"
+while eval $CMD
 do
+    eval $WATCHCMD
+    echo -e "\n\033[1;33m...finish rsync...\033[0m"
     echo -e "\033[1;33m...waiting for change...\033[0m\n"
-    while eval $CMD
-    do
-        eval $WATCHCMD
-        echo -e "\n\033[1;33m...finish rsync...\033[0m\n"
-    done
 done
-#eval $CMD | while read CHANGE
-#do
-    #echo "$CHANGE" && eval $WATCHCMD
-#done
