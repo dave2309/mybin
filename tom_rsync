@@ -66,7 +66,8 @@ if [[ ! -d "$SRCFOLDR" ]]; then
 fi
 
 # Build rsync options
-RSYNC_OPTIONS='--verbose --info=flist1,stats0,skip1,remove1 --compress --archive --omit-dir-times --human-readable --delete-after '
+#RSYNC_OPTIONS='--verbose --info=flist1,stats0,skip1,remove1 --compress --archive --omit-dir-times --human-readable --delete-after '
+RSYNC_OPTIONS='--itemize-changes --compress --archive --omit-dir-times --human-readable --delete-after '
 for EXC in $EXCLDIRS; do
     #RSYNC_OPTIONS+="--exclude='$EXC/*' "
     RSYNC_OPTIONS+="--exclude='$EXC' "
