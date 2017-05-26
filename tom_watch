@@ -41,13 +41,14 @@ do
 done
 
 # Configuration
+[ $VERBOSE -eq 1 ] && QUIET='' || QUIET='-q'
 WATCHPRG="$(which inotifywait)"
-WATCHCMD="$HOME/bin/tom_rsync -t $RSYNCTRG -s $SRCFOLDR -r $PROJNAME"
+WATCHCMD="$HOME/bin/tom_rsync $QUIET -t $RSYNCTRG -s $SRCFOLDR -r $PROJNAME"
 WATCHEVT="modify,attrib,move,create,delete"
 #WATCHEXC="(\.git|\.gitignore|\.gitattributes|\.idea|\.vagrant|puppet|composer\.lock|composer\.json|\.editorconfig|README|README\.md|\.travis\.yml)"
 #WATCHEXC="^(src|config|app|webroot)"
 #WATCHOPT="--monitor --recursive --format '%:e %w%f' --exclude '$WATCHEXC' --event '$WATCHEVT'"
-WATCHOPT="--quiet --recursive --format '%w %:e' --event '$WATCHEVT'"
+WATCHOPT="--recursive --format '%w %:e' --event '$WATCHEVT'"
 
 # Check arguments validity
 SUBS='app src webroot config test cake build'
