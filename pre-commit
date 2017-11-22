@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Hook that checks PHP syntax
+
+# Override IFS so that spaces do not count as delimiters
+old_ifs=$IFS
+IFS=$'\n'
+
+echo "* PRE-COMMIT"
+result=0
+files=$(git -c color.status=false status --short | grep -E '\.(php|ctp|js|css)$' | grep -E "^[MAC]" | cut -d' ' -f3)
+for file in $files; do
+    case ${file##*.} in
+        php|ctp)
+            php -l "$file"
+            ;;
+        css)
+            csslint-0.6 "$file" > /dev/null
+            #csstidy "$file" > /dev/null
+            ;;
+        js)
+            node -c "$file"
+            ;;
+    esac
+    result=$((result+=$?))
+done
+echo "* PRE-COMMIT END"
+exit $result

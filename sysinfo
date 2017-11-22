@@ -1,0 +1,29 @@
+#!/bin/bash
+mkfifo in out
+urxvt <in >out &
+echo -e "\033[1;2A" >in
+echo "glance" >in
+#sleep 1
+#xdotool key Shift+Up
+#xdotool key g
+#xdotool key l
+#xdotool key a
+#xdotool key n
+#xdotool key c
+#xdotool key e
+#xdotool key s
+#xdotool key Return
+#sleep 0.5
+#bash -c glances -c @localhost &
+#xdotool key Shift+Down
+#xdotool key Shift+Up
+#xdotool key j
+#xdotool key o
+#xdotool key u
+#xdotool key r
+#xdotool key n
+#xdotool key a
+#xdotool key l
+#xdotool key Return
+#journalctl -f &
+

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+DAY=$(date +%d)
+cal -h -A 5 > /tmp/conky_cal
+echo -e " Vagrant Boxes\n------------------" > /tmp/conky_box
+vagrant global-status|grep libvirt|sed -e "s/default.*libvirt//g" -e "s/\/home\/david\///g" | tr -s " "  >> /tmp/conky_box
+echo -e " Hosts\n--------------------------" > /tmp/conky_hosts
+grep ^192 /etc/hosts >> /tmp/conky_hosts
+echo -e "\n" >> /tmp/conky_box
+cat /tmp/conky_hosts >> /tmp/conky_box
+
+#paste /tmp/conky_cal /tmp/conky_box | column -s $'\t' -tn
+paste /tmp/conky_cal /tmp/conky_box | sed -e "0,/$DAY/s//\${color3}$DAY\${color6}/" > /tmp/conky_info
+
+

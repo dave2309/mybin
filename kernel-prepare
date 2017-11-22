@@ -7,4 +7,5 @@
 #wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.9.4/0004-UBUNTU-SAUCE-no-up-disable-pie-when-gcc-has-it-enabl.patch
 #wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.9.4/0005-debian-changelog.patch
 #wget http://kernel.ubuntu.com/~kernel-ppa/mainline/v4.9.4/0006-configs-based-on-Ubuntu-4.9.0-11.12.patch
-git clone git://kernel.ubuntu.com/ubuntu/ubuntu-zesty.git
+#git clone git://kernel.ubuntu.com/ubuntu/ubuntu-zesty.git
+git clone git://kernel.ubuntu.com/ubuntu/ubuntu-bionic.git

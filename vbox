@@ -1,0 +1,25 @@
+#!/bin/bash
+if [[ -z "$1" ]]
+then
+    echo "missing box name"
+    exit 1
+fi
+if [[ -z "$2" ]]
+then
+    echo "missing action up|halt|ssh"
+    exit 1
+fi
+if [[ "$1" == "tombox" ]]
+then
+    ID="efda2d9"
+fi
+if [[ "$1" == "xenial" ]]
+then
+    ID="609e003"
+fi
+PROVISION=""
+if [[ "$2" == "up" ]]
+then
+    PROVISION="--no-provision"
+fi
+vagrant $2 $ID $PROVISION

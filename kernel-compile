@@ -110,7 +110,8 @@ if [ $? -eq 0 ]; then
         echo "Maybe next time...(no installation)"
         exit 0
     fi
-    kernel-install $VER i7 > /dev/null 2>&1
+    cd ..
+    kernel-install $VER i7
 else
     echo 'Problem during compilation'
     exit 1

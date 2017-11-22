@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ -d /srv/tom/web-cp1 ]; then
+    echo "enable ToM on cakePhp 1"
+    mv /srv/tom/web /srv/tom/web-cp2
+    mv /srv/tom/web-cp1 /srv/tom/web
+elif [ -d /srv/tom/web-cp2 ]; then
+    echo "enable ToM on cakePhp 2"
+    mv /srv/tom/web /srv/tom/web-cp1
+    mv /srv/tom/web-cp2 /srv/tom/web
+fi
+

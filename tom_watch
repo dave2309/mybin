@@ -48,7 +48,8 @@ WATCHEVT="modify,attrib,move,create,delete"
 #WATCHEXC="(\.git|\.gitignore|\.gitattributes|\.idea|\.vagrant|puppet|composer\.lock|composer\.json|\.editorconfig|README|README\.md|\.travis\.yml)"
 #WATCHEXC="^(src|config|app|webroot)"
 #WATCHOPT="--monitor --recursive --format '%:e %w%f' --exclude '$WATCHEXC' --event '$WATCHEVT'"
-WATCHOPT="--quiet --quiet --recursive --format '%w %:e' --event '$WATCHEVT'"
+#WATCHOPT="--quiet --quiet --recursive --format '%w %:e' --event '$WATCHEVT'"
+WATCHOPT="--recursive --format '%w %:e' --event '$WATCHEVT'"
 
 # Check arguments validity
 SUBS='app src webroot config test cake build'
@@ -66,10 +67,11 @@ CMD="$WATCHPRG $WATCHOPT $SRCFOLDR"
 [[ $VERBOSE -eq 1 ]] && config
 
 # Start
-echo -e "\033[1;33m...waiting for change...\033[0m\n"
+echo -e "\033[1;33m...waiting for change...\033[0m"
 while eval $CMD
 do
+    sleep 0.5
     eval $WATCHCMD
-    echo -e "\n\033[1;33m...finish rsync...\033[0m"
-    echo -e "\033[1;33m...waiting for change...\033[0m\n"
+    echo -e "\033[1;33m...finish rsync...\033[0m"
+    echo -e "\033[1;33m...waiting for change...\033[0m"
 done

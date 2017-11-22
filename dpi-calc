@@ -1,0 +1,4 @@
+#!/bin/bash
+
+RES=$(echo 'scale=5;sqrt(1920^2+1080^2)'|bc)
+

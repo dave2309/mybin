@@ -1,0 +1,3 @@
+#!/bin/bash
+
+for f in $(find -type f -name "*.php"); do s=$(grep "uses('Folder')" $f); if [ -n "$s" ]; then echo "processing $f";sed "/uses('Folder')/s/uses('Folder')/uses('Folder', 'Utility')/g" $f > /dev/null; fi; done
