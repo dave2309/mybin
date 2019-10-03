@@ -3,7 +3,7 @@
 # Functions
 function syntax() {
     echo "Error: $1"
-    echo "Usage: `basename $0` [-q] -t <IP> -s <source_folder> -r <remote_folder>"
+    echo "Usage: `basename $0` [-q] -u <rsync_user> -p <rsync_password_file> -t <IP> -s <source_folder> -r <remote_folder>"
     exit 1
 }
 
@@ -16,6 +16,8 @@ function config() {
     echo "- filtersP: $EXCFILTS"
     echo "- filtersH: $HIDFILTS"
     echo "- rsyncmod: $RSYNCMOD"
+    echo "- rsyncusr: $RSYNCUSR"
+    echo "- rsyncpwd: $RSYNCPWD"
     echo "- target  : $RSYNCTRG"
     echo "- rsync   : $CMD"
 }
@@ -26,11 +28,15 @@ if [[ $# -lt 1 ]]; then
 fi
 
 # check other arguments if any
+RSYNCUSR='vagrant'
+RSYNCPWD="$HOME/bin/rsync.pwd"
 LOOP_DELAY=0.5
 VERBOSE=1
-while getopts ":qr:s:t:" opt
+while getopts ":qp:r:s:t:u:" opt
 do
     case $opt in
+        p) RSYNCPWD="$OPTARG"
+            ;;
         q) VERBOSE=0
             ;;
         r) PROJNAME="$OPTARG"
@@ -38,6 +44,8 @@ do
         s) SRCFOLDR="$OPTARG"
             ;;
         t) RSYNCTRG="$OPTARG"
+            ;;
+        u) RSYNCUSR="$OPTARG"
             ;;
         :) echo "Option $OPTARGS requires a value"
             exit 1
@@ -47,24 +55,29 @@ done
 
 # Configuration
 #PROJNAME="$(basename $SRCFOLDR)"
-INCLDIRS='app cake lib bin config plugins src tests vendor vendors webroot build websrc scripts keys'
+INCLDIRS='app cake lib bin config plugins src tests vendor vendors vendors/fpdf17 vendors/shells vendors/slinky vendors/twitter webroot build websrc scripts keys'
 #INCFILES='Vagrantfile README'
 #INCFILES='index.php composer.json composer.lock'
-INCFILES='index.php package.json package-lock.json composer.* webpack.* app.sh'
+INCFILES='index.php package.json package-lock.json composer.* webpack.* app.sh app/webroot/test.php'
 #EXCLDIRS='webroot/min app/webroot/min puppet app/tmp app/tmp/logs'
-EXCLDIRS='webroot/min app/webroot/min puppet app/tmp'
+EXCLDIRS='webroot/min app/webroot/min'
 #EXCFILES='*.tags .ctags.* *.cache .vimrc app.php'
-EXCFILES='*.tags .ctags.* *.cache .vimrc'
+EXCFILES='*.tags .ctags.* *.cache .vimrc config/app.php'
 #EXCFILTS='vendor logs/*** webroot/min/*** app/webroot/min/*** app/tmp/*** app/tmp/logs/*** ***/node_modules'
-EXCFILTS='/vendor/*** /vendors/*** logs/*** webroot/min/*** tmp/*** ***/node_modules' # cakephp 2
+EXCFILTS='webroot/min/*** ***/node_modules' # cakephp 2
+PRTFILTS='vendor/*** vendors/***' # cakephp 2
 #EXCFILTS='logs/*** webroot/min/*** app/webroot/min/*** app/tmp/*** ***/node_modules' # cakephp 1
 #HIDFILTS='vendor tmp/*** logs/*** app/tmp/*** app/logs/*** build/*** webroot/min/***'
-HIDFILTS='/vendors/*** app/tmp app/logs webroot/min' # cakephp 2
+#HIDFILTS='vendors/*** app/tmp app/logs webroot/min' # cakephp 2
+HIDFILTS='vendor/*** vendors/*** webroot/min' # cakephp 2
 #HIDFILTS='app/tmp app/logs webroot/min app/webroot/min' # cakephp 1
 RSYNCCMD=$(which rsync)
 RSYNCMOD='tom'
-RSYNCUSR='vagrant'
-RSYNCPWD="$HOME/bin/rsync.pwd"
+
+WATCHPRG="$(which inotifywait)"
+#WATCHOPT='--quiet --quiet --recursive --event modify --event attrib --event close_write --event move --event move_self --event create --event delete --event delete_self --exclude \.git'
+WATCHOPT='--quiet --recursive --event modify --event attrib --event close_write --event move --event move_self --event create --event delete --event delete_self --exclude "(\.git|\.php\.tags|\.js\.tags)"'
+WATCHCMD="$WATCHPRG $WATCHOPT $SRCFOLDR"
 
 # Check if source exists
 if [[ ! -d "$SRCFOLDR" ]]; then
@@ -81,9 +94,9 @@ done
 for EXC in $EXCFILES; do
     RSYNC_OPTIONS+="--exclude='$EXC' "
 done
-for FLT in $HIDFILTS; do
-    RSYNC_OPTIONS+="--filter='hide $FLT' "
-done
+#for FLT in $HIDFILTS; do
+    #RSYNC_OPTIONS+="--filter='hide $FLT' "
+#done
 for FLT in $EXCFILTS; do
     RSYNC_OPTIONS+="--filter='protect $FLT' "
 done
@@ -105,16 +118,15 @@ CMD="$RSYNCCMD ${RSYNC_OPTIONS[@]} $SRCFOLDR $RSYNCUSR@$RSYNCTRG::$RSYNCMOD/$PRO
 
 # Start
 echo -e "\033[1;33m...start and wait...\033[0m"
-while true
+while eval $WATCHCMD
 do
+    echo -e "\033[1;33m...syncing...\033[0m"
     RESULT=$(eval $CMD)
     if [ -n "$RESULT" ]; then
         DATE=$(date '+%d/%m/%Y %H:%M:%S')
-        echo -e "\033[1;33m...synchronized at $DATE ...\033[0m"
-        echo "$RESULT"
-        echo -e "\033[1;33m...waiting for change...\033[0m"
+        echo -e "$RESULT\n\033[1;33m...synchronized at $DATE ...\n...waiting for change...\033[0m"
     fi
-    sleep $LOOP_DELAY
+    #sleep $LOOP_DELAY
 done
 
 # Do rsync

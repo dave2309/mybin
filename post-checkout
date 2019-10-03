@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Hook that generate ctags files
+
+echo "* hook: `basename $0`: generate ctags for php"
+gen_ctags_php &

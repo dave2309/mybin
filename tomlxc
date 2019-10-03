@@ -1,0 +1,46 @@
+#!/bin/bash
+
+[[ ! $# -eq 2 ]] && exit 1
+
+case "$2" in
+    'db')
+        COMMAND="juju ssh percona-cluster/0 mysql -uroot -p$(juju run --unit percona-cluster/0 leader-get mysql.passwd) tomboxdb"
+        ;;
+
+    'dbg')
+        COMMAND="lxc exec $1 -- tail -f /var/tom/web/tmp/logs/debug.log"
+        ;;
+
+    'err')
+        COMMAND="lxc exec $1 -- tail -f /var/tom/web/tmp/logs/error.log"
+        ;;
+
+    'sql')
+        COMMAND='juju ssh percona-cluster/0 sudo tail -f /var/log/mysql/queries.log'
+        #tail -f /var/log/mysql/queries.log'
+        ;;
+
+    'root')
+        COMMAND="lxc exec $1 -- bash"
+        ;;
+
+    'ubuntu')
+        COMMAND="lxc exec $1 -- su - ubuntu"
+        ;;
+
+    'wp')
+        #COMMAND="su - ubuntu -c 'cd /srv/tom/web ; npm run start'"
+        COMMAND="lxc exec $1 -- su - ubuntu -c 'cd /srv/tom/web ; node_modules/.bin/webpack --config webpack.dev.js --mode development --display errors-only --bail'"
+        ;;
+
+    '*')
+        COMMAND=''
+        ;;
+esac
+
+[[ -z "$COMMAND" ]] && exit 1
+[[ -z "$(lxc list --columns=n --format csv $1)" ]] && exit 1
+
+#echo -e '\033]2;'$2'\007'
+printf "\033k$2\033\\"
+bash -c "$COMMAND"

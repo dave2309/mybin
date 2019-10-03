@@ -1,5 +1,13 @@
 #!/bin/bash
-find . -type f -iregex ".*\.js$" -not -path "./*/node_modules/*" -exec jsctags {} -f \; | sed '/^$/d' | sort > .js.tags
+pgrep -x "ctags" && exit 1
+rm -f ./.js.tags.* >/dev/null 2>&1
+[ -d ./websrc/ ] && path='./websrc/js ./websrc/components' || path='./app/webroot/js'
+(ctags -R --options=./.ctags.js.options -f ./.js.tags.$$ $path && sed -i -E "/^(if|switch|function|module\.exports|while|for|each|forEach|describe).+language:js$/d" ./.js.tags.$$ && mv -f ./.js.tags.$$ ./.js.tags ) &
+
+
+
+
+#find . -type f -iregex ".*\.js[x]?$" -path "./app/webroot/*" -not -path "./app/webroot/min/*" -exec jsctags {} -f \; | sed '/^$/d' | sort > .js.tags
 #FLAG='no'
 #if [[ $# -eq 1 ]]; then
     #FLAG='yes'

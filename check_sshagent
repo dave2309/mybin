@@ -1,0 +1,15 @@
+#!/bin/bash
+
+ssh-add -l &>/dev/null
+if [ "$?" == 2 ]; then
+  test -r ~/.ssh-agent && \
+    eval "$(<~/.ssh-agent)" >/dev/null
+
+  ssh-add -l &>/dev/null
+  if [ "$?" == 2 ]; then
+    (umask 066; ssh-agent > ~/.ssh-agent)
+    eval "$(<~/.ssh-agent)" >/dev/null
+    /usr/bin/ssh-add $HOME/.ssh/agtm-llt05.local
+    /usr/bin/ssh-add $HOME/.ssh/agtm-wsl20.local
+  fi
+fi

@@ -1,0 +1,24 @@
+#!/bin/bash
+
+function syntax {
+    echo 'Missing parameters'
+    exit 1
+}
+
+[[ $# -lt 1 ]] && syntax
+
+file="shot$1-$(date +%Y-%m-%d_%H:%M:%S).png"
+path="$HOME/Pictures/screenshots/$file"
+clip=false
+shot=false
+
+[[ $1 = -all ]] && maim $path && shot=true
+[[ $1 = -sel ]] && maim -s $path && shot=true
+[[ $1 = -win ]] && maim -i $(xdotool getactivewindow) $path && shot=true
+
+[[ $2 = -clp ]] && [[ -e $path ]] && xclip -selection clipboard -t image/png $path && clip=true
+
+if $shot ; then
+    [[ $clip ]] && msg="$file\nin clipboard" || msg="$file"
+    notify-send -t 1000 "ScreenShot" "$(echo -e $msg)"
+fi

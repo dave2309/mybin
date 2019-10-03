@@ -1,8 +1,6 @@
 #!/bin/bash
-
-FLAG='no'
-if [[ $# -eq 1 ]]; then
-    FLAG='yes'
-fi
-#ctags --verbose=$FLAG --totals=$FLAG --recurse=yes --language-force=PHP --recurse -f ./.php.tags -L ./.ctags.php.inc --exclude=@./.ctags.php.exc
-ctags --verbose=$FLAG --totals=$FLAG --recurse=yes --languages=php --recurse --fields=+aimlS -f ./.php.tags -L ./.ctags.php.inc --exclude=@./.ctags.php.exc
+pgrep -x "ctags" >/dev/null 2>&1 && exit 1
+[[ -f ./.php.tags.$$ ]] && rm -f ./.php.tags.$$ >/dev/null 2>&1
+(
+    nice -n19 ionice -c2 -n7 ctags -R --options=./.ctags.php.options -f ./.php.tags.$$ .  && mv -f ./.php.tags.$$ ./.php.tags >/dev/null 2>&1
+) &

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+sed -e 's/"/\\"/g'|slack chat send --color warning --channel $1 --pretext
+#slack-cli --pre --team timesofmalta --dst ryan.gosden

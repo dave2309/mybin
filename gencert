@@ -1,0 +1,22 @@
+#!/bin/sh
+host=${1:-v3}
+domain=${2:-dev.timesofmalta.com}
+
+echo "authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = $host.dev.timesofmalta.com
+DNS.2 = $host.admin.dev.timesofmalta.com
+DNS.3 = $host.archive.dev.timesofmalta.com
+DNS.4 = $host.epaper.dev.timesofmalta.com
+DNS.5 = $host.mdot.dev.timesofmalta.com
+" > /root/tomCA.ext
+
+openssl genrsa -out "/root/$host.$domain.key" 2048
+openssl req -new -key "/root/$host.$domain.key" -out "/root/$host.$domain.csr" -subj "/C=MT/ST=Valletta/L=Valletta/O=Times Of Malta/OU=Web Service/CN=*.$domain"
+openssl x509 -req -days 3650 -in "/root/$host.$domain.csr" -CA /root/tomCA.pem -CAkey /root/tomCA.key -CAcreateserial -sha256 -out "/root/$host.$domain.crt" -extfile /root/tomCA.ext -passin pass:tomca
+cp "/root/$host.$domain.key" /etc/ssl/private/
+cp "/root/$host.$domain.crt" /etc/ssl/certs/

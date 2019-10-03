@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if [ -n "$(lxc list --columns=n --format csv $1)" ]; then
+    lxc exec "$1" -- su - ubuntu -c "cd /srv/tom/web && npm install && npm run start"
+else
+    echo "Container '$1' does not exists"
+    exit 1
+fi

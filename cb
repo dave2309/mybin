@@ -1,0 +1,14 @@
+#!/bin/bash
+
+#eval $(echo $@ |sed -e "s/\(.*\)/\L\1/;s/ /-/g;s/^/git co -b /;s/$/ upstream\/develop/")
+
+[[ -z $1 ]] && { echo "Issue number required"; exit 1; }
+
+issue="$1"
+repo=${2:tomweb}
+
+branch=$(ghi list|grep "$repo $issue"|sed -e "s/tomweb//;s/\[.*//;s/\ *//;s/\ *$//;s/ /-/g;s/-\+/-/g;s/\(.*\)/\L\1/")
+
+[[ -z $branch ]] && { echo "Issue not found"; exit 1; }
+
+git co -b "$branch" upstream/master

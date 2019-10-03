@@ -1,27 +1,58 @@
 #!/usr/bin/env bash
 # Hook that checks PHP syntax
 
+# Where are we?
+path=$(pwd)
+[ ! -d $path/node_modules/.bin ] && exit 1
+[ ! -f $path/node_modules/.bin/eslint ] && exit 1
+[ ! -f $path/node_modules/.bin/stylelint ] && exit 1
+
+
 # Override IFS so that spaces do not count as delimiters
 old_ifs=$IFS
 IFS=$'\n'
 
-echo "* PRE-COMMIT"
+echo "* hook: `basename $0`: check file syntax"
 result=0
-files=$(git -c color.status=false status --short | grep -E '\.(php|ctp|js|css)$' | grep -E "^[MAC]" | cut -d' ' -f3)
+files=$(git status --porcelain | grep -E '\.(php|ctp|js[x]?|css)$' |grep -E "^ ?[MAC]" | awk '{ print $2 }')
 for file in $files; do
     case ${file##*.} in
         php|ctp)
-            php -l "$file"
+            php -l $file
+            #[[ $? -eq 0 ]] && vendors/cakephp/cakephp/lib/Cake/Console/cake -app /srv/tom/web/app/ test --quiet $file
             ;;
+
+        js|jsx)
+            FOUND=0
+            while read l; do
+                if [[ $l =~ ^[^#] ]]; then
+                    if [[ $(find $path/$l -name $file 2>&1 >/dev/null) ]]; then
+                        FOUND=1
+                    fi
+                fi
+            done < ./.eslintignore
+
+            [[ $FOUND ]] && continue
+
+            $path/node_modules/.bin/eslint $file
+            ;;
+
+        #js)
+            #if [[ $file == build/src/* ]]; then
+                #$path/node_modules/.bin/eslint $file
+            #else
+                #node --check $file && echo $file : no errors
+            #fi
+            #;;
+        #jsx)
+            #$path/node_modules/.bin/eslint $file
+            #;;
+
         css)
-            csslint-0.6 "$file" > /dev/null
-            #csstidy "$file" > /dev/null
-            ;;
-        js)
-            node -c "$file"
+            $path/node_modules/.bin/stylelint $file
+            #csslint --format=compact --warnings=false $file
             ;;
     esac
     result=$((result+=$?))
 done
-echo "* PRE-COMMIT END"
 exit $result

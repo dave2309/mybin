@@ -1,0 +1,58 @@
+#!/bin/bash
+
+function isGitDir {
+    folder="$1/.git"
+    [[ -d $folder ]] && return 0
+    echo -e "\033[0;31mNot a git folder\033[0m"
+    return 1
+}
+
+function isGitHubAccessible {
+    ret=$(ping -q -c1 github.com &>/dev/null)
+    #[[ $ret -eq 0 ]] && echo -n '·' || echo '!'
+    return ${ret:-0}
+}
+
+function notify {
+    echo
+    paplay /usr/share/sounds/freedesktop/stereo/message.oga &
+    notify-send -t 10000 -a git -i gitg-symbolic -u critical "P:$1 | R:$2" "$3"
+}
+
+function output {
+    echo -e "\033[0;32m$(date +%c)\033[0m\n$1\n"
+}
+
+function fetchRepo {
+    project="$1"
+    repository="$2"
+    infos="$(git fetch --prune $repository 2>&1)"
+    [[ $? -eq 0 && -n "$infos" ]] && notify "$project" "$repository" "$infos" && output "$infos"
+}
+
+function loopRemotes {
+    project="$1"
+    remotes="$2"
+    for remote in $remotes
+    do
+        isGitHubAccessible && fetchRepo "$project" "$remote"
+    done
+}
+
+here="$(pwd)"
+folder="${1:-$here}"
+isGitDir "$folder" || exit 1
+
+cd "$folder"
+
+#isGitHubAccessible || exit 2
+
+echo "fetching git repo $folder"
+project="$(basename `pwd`)"
+while true
+do
+    isGitHubAccessible && loopRemotes "$project" "$(git remote)"
+    sleep 3
+done
+
+cd "$here"

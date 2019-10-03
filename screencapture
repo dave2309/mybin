@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+fn="$HOME/Videos/$(basename $0)-$(date +%Y-%m-%d_%H:%M:%S)"
+ffmpeg -f x11grab -s 1366x768 -r 30 -i :0.0 -vcodec huffyuv ${fn}.avi
+ffmpeg -i ${fn}.avi -c:v libx264 -crf 19 -preset veryslow ${fn}.mp4

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+DIR=${1:=.}
+ERR=0
+for php in $(find $DIR -type f -name "*.php")
+do
+    ERROR=$(php -l $php 2>&1 >/dev/null)
+    if [ $? -ne 0 ]; then
+        ERR=$(($ERR+1))
+        echo $ERROR
+    fi
+done
+[ $ERR -gt 0 ] && echo "$ERR found"

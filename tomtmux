@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -x
+
+tmux has-session -t $1
+if [ $? -eq 1 ]; then
+    source="/srv/tom/web-$1"
+    container="$1"
+
+    tmux new-session -s $1 -d -n $1 "cd $source; bash -i"
+    tmux new-window -n $1   "cd $source; bash -i"
+    tmux new-window -n root   "tomlxc $container root; bash -i"
+    tmux new-window -n ubuntu "tomlxc $container ubuntu; bash -i"
+    tmux new-window -n error  "tomlxc $container err; bash -i"
+    tmux new-window -n debug  "tomlxc $container dbg; bash -i"
+    tmux new-window -n mysql  "tomlxc $container sql; bash -i"
+    tmux new-window -n db     "tomlxc $container db; bash -i"
+    tmux new-window -n wp     "tomlxc $container wp; bash -i"
+    #tmux new-window -n fetch  "bash -c 'notify-fetch $source; exec bash -i'"
+    tmux new-window -n fetch  "bash -i"
+    #tmux send-keys -t $1:fetch "notify-fetch $source" c-M
+fi
+
+tmux select-window -t 0
+tmux attach-session -t $1 -d
