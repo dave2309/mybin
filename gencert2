@@ -1,0 +1,22 @@
+#!/bin/sh
+domain=${2:-dev.timesofmalta.com}
+
+outdir=$(mktemp -d)
+
+echo "authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = *.dev.timesofmalta.com
+DNS.2 = dev.timesofmalta.com
+" > $outdir/$domain.ext
+
+#openssl rand -hex -out .rnd 20
+openssl genrsa -out $outdir/$domain.key 2048
+openssl req -new -key $outdir/$domain.key -out $outdir/$domain.csr -subj "/C=MT/ST=Valletta/L=Valletta/O=Times Of Malta/OU=Web Service/CN=*.$domain"
+openssl x509 -req -days 3650 -in $outdir/$domain.csr -CA ~/Keys/tomCA.pem -CAkey ~/Keys/tomCA.key -CAcreateserial -sha256 -out $outdir/$domain.crt -extfile $outdir/$domain.ext -passin pass:tomca
+
+echo $outdir
+ls -l $outdir

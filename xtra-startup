@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+~/bin/xtra-screens set && ~/bin/xtra-screens attach

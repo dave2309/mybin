@@ -1,3 +1,4 @@
 #!/bin/bash
 export _JAVA_AWT_WM_NONREPARENTING=1
-/usr/bin/wmname LG3D && /usr/bin/mysql-workbench
+#/usr/bin/wmname LG3D && /usr/bin/mysql-workbench-community
+/usr/bin/wmname LG3D && /snap/bin/mysql-workbench-community

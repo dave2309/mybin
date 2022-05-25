@@ -1,5 +1,39 @@
 #!/usr/bin/env bash
 
+onair="/tmp/screencapture-on-air"
+
+if [ -f $onair ]
+then
+    capture_details=$(cat $onair)
+
+    capture_pid=$(echo $capture_details|cut -d# -f1)
+    capture_fn=$(echo $capture_details|cut -d# -f2)
+
+    echo $capture_details
+    echo $capture_fn
+    echo $capture_pid
+
+    notify-send -t 3000 -u normal "Screen capture" "Stop capture...\n${capture_fn}.avi"
+
+    kill $capture_pid
+
+    notify-send -t 3000 -u normal "Screen capture" "Convert capture...\n${capture_fn}.avi\nto\n${capture_fn}.mp4"
+
+    ffmpeg -i ${capture_fn}.avi -c:v libx264 -crf 19 -preset veryslow ${capture_fn}.mp4
+
+    notify-send -t 1000 -u normal "Screen capture" "Finish capture..."
+
+    rm $onair ${capture_fn}.avi
+
+    exit 0
+fi
+
 fn="$HOME/Videos/$(basename $0)-$(date +%Y-%m-%d_%H:%M:%S)"
-ffmpeg -f x11grab -s 1366x768 -r 30 -i :0.0 -vcodec huffyuv ${fn}.avi
-ffmpeg -i ${fn}.avi -c:v libx264 -crf 19 -preset veryslow ${fn}.mp4
+
+notify-send -t 3000 -u normal "Screen capture" "Start capture...\n$fn.avi"
+
+dimension=$(xdpyinfo |grep dimensions|egrep -o " [0-9]+x[0-9]+ "|sed "s/ //g")
+
+ffmpeg -f x11grab -s ${dimension} -r 30 -i :0.0 -vcodec huffyuv ${fn}.avi &
+
+echo "$!#$fn" > $onair

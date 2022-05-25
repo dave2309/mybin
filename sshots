@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# print out syntax
 function syntax {
     echo 'Missing parameters'
     exit 1

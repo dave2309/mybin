@@ -1,6 +1,8 @@
 #!/bin/sh
-host=${1:-v3}
+host=${1:-v5}
 domain=${2:-dev.timesofmalta.com}
+
+outdir=$(mktemp -d)
 
 echo "authorityKeyIdentifier=keyid,issuer
 basicConstraints=CA:FALSE
@@ -13,10 +15,12 @@ DNS.2 = $host.admin.dev.timesofmalta.com
 DNS.3 = $host.archive.dev.timesofmalta.com
 DNS.4 = $host.epaper.dev.timesofmalta.com
 DNS.5 = $host.mdot.dev.timesofmalta.com
-" > /root/tomCA.ext
+" > $outdir/$host.$domain.ext
 
-openssl genrsa -out "/root/$host.$domain.key" 2048
-openssl req -new -key "/root/$host.$domain.key" -out "/root/$host.$domain.csr" -subj "/C=MT/ST=Valletta/L=Valletta/O=Times Of Malta/OU=Web Service/CN=*.$domain"
-openssl x509 -req -days 3650 -in "/root/$host.$domain.csr" -CA /root/tomCA.pem -CAkey /root/tomCA.key -CAcreateserial -sha256 -out "/root/$host.$domain.crt" -extfile /root/tomCA.ext -passin pass:tomca
-cp "/root/$host.$domain.key" /etc/ssl/private/
-cp "/root/$host.$domain.crt" /etc/ssl/certs/
+#openssl rand -hex -out .rnd 20
+openssl genrsa -out $outdir/$host.$domain.key 2048
+openssl req -new -key $outdir/$host.$domain.key -out $outdir/$host.$domain.csr -subj "/C=MT/ST=Valletta/L=Valletta/O=Times Of Malta/OU=Web Service/CN=*.$domain"
+openssl x509 -req -days 3650 -in $outdir/$host.$domain.csr -CA ~/Keys/tomCA.pem -CAkey ~/Keys/tomCA.key -CAcreateserial -sha256 -out $outdir/$host.$domain.crt -extfile $outdir/$host.$domain.ext -passin pass:tomca
+
+echo $outdir
+ls -l $outdir

@@ -7,8 +7,11 @@
 issue="$1"
 repo=${2:tomweb}
 
-branch=$(ghi list|grep "$repo $issue"|sed -e "s/tomweb//;s/\[.*//;s/\ *//;s/\ *$//;s/ /-/g;s/-\+/-/g;s/\(.*\)/\L\1/")
+#branch=$(gh issue list|grep "$repo $issue"|sed -e "s/tomweb//;s/\[.*//;s/\ *//;s/\ *$//;s/[ +;:{}()=]/-/g;s/-\+/-/g;s/\(.*\)/\L\1/")
+branch=$(gh issue list --json number,title --template '{{range .}}{{tablerow (printf "%v" .number) .title}}{{end}}'|grep ^$issue|sed "s/\ *//;s/\ *$//;s/[ +;:{}()=]/-/g;s/-\+/-/g;s/\(.*\)/\L\1/g")
 
 [[ -z $branch ]] && { echo "Issue not found"; exit 1; }
 
-git co -b "$branch" upstream/master
+git co -b "$branch"
+#git co -b "$branch" --track "me/$branch"
+#git branch --set-upstream-to="me/$branch"

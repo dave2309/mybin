@@ -1,0 +1,30 @@
+#!/bin/sh
+host=${1:-web}
+domain=${2:-staging.timesofmalta.com}
+
+outdir=$(mktemp -d)
+
+echo "authorityKeyIdentifier=keyid,issuer
+basicConstraints=CA:FALSE
+keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = web.staging.timesofmalta.com
+DNS.2 = admin.staging.timesofmalta.com
+DNS.3 = cms.staging.timesofmalta.com
+DNS.4 = cms-testing.staging.timesofmalta.com
+DNS.5 = web-testing.staging.timesofmalta.com
+DNS.6 = cms-current.staging.timesofmalta.com
+DNS.7 = web-current.staging.timesofmalta.com
+DNS.8 = cms-next.staging.timesofmalta.com
+DNS.9 = web-next.staging.timesofmalta.com
+" > $outdir/$host.$domain.ext
+
+openssl rand -hex 20 -out .rnd
+openssl genrsa -out $outdir/$host.$domain.key 2048
+openssl req -new -key $outdir/$host.$domain.key -out $outdir/$host.$domain.csr -subj "/C=MT/ST=Valletta/L=Valletta/O=Times Of Malta/OU=Web Service/CN=*.$domain"
+openssl x509 -req -days 3650 -in $outdir/$host.$domain.csr -CA ~/Keys/tomStagingCA.pem -CAkey ~/Keys/tomCA.key -CAcreateserial -sha256 -out $outdir/$host.$domain.crt -extfile $outdir/$host.$domain.ext -passin pass:tomca
+
+echo $outdir
+ls -l $outdir

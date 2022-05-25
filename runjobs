@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+maxjob=${1:-1}
+container="${2:-attachments}"
+dirbase="${3:-/mnt}"
+bucket="${4:-tom-media-prod}"
+
+input="$dirbase/fileslist"
+
+job=0
+finish=0
+jobs_list=" "
+for file in $(ls -1 $input/$container/*.list)
+do
+	rax2aws $container < $file &
+	jobid=$!
+	sudo renice -n -15 -p $jobid > /dev/null
+	disown $jobid
+
+	jobs_list="${jobs_list}${jobid} "
+
+	job=$(($job + 1))
+
+	while [ $job -eq $maxjob ]
+	do 
+		sleep 10
+
+		for pid in ${jobs_list}
+		do
+			if ps -p $pid > /dev/null
+			then
+				continue
+			fi
+
+			job=$(($job - 1))
+			jobs_list=$(echo "$jobs_list"|sed -e "s/\ $pid\ / /")
+		done
+	done
+done
+
+while [ $job -gt 0 ]
+do 
+	sleep 10
+
+	for pid in ${jobs_list}
+	do
+		if ps -p $pid > /dev/null
+		then
+			continue
+		fi
+
+		job=$(($job - 1))
+		jobs_list=$(echo "$jobs_list"|sed -e "s/\ $pid\ / /")
+	done
+done
+
+aws s3 sync $dirbase/containers/$container/ s3://$bucket/$container/ --quiet

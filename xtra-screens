@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+set +xe
+
+[[ $# -eq 0 ]] && exit
+
+# gtf 1280 800 60
+
+# Define mode
+#xrandr --newmode "1280x800_60.00"  83.46  1280 1344 1480 1680  800 801 804 828  -HSync +Vsync
+#"1280x800_59.93"
+if [[ $1 = "set" ]]; then
+    echo "set mode"
+    if [[ $(xrandr | grep 1280x800_tablet) ]]
+    then
+        echo "already set..."
+        exit
+    fi
+    xrandr --newmode "1280x800_tablet"  83.37  1280 1344 1480 1680  800 801 804 828  -HSync +Vsync
+fi
+
+if [[ $1 = "unset" ]]; then
+    echo "unset mode"
+    xrandr --rmmode 1280x800_tablet
+fi
+
+if [[ $1 = "attach" ]]
+then
+    xrandr --addmode VIRTUAL1 1280x800_tablet
+    xrandr --output VIRTUAL1 --rotate left --mode 1280x800_tablet --left-of eDP1
+    sleep 1
+    xrandr --addmode VIRTUAL2 1280x800_tablet
+    xrandr --output VIRTUAL2 --mode 1280x800_tablet --right-of eDP1
+    sleep 1
+    xrandr --output eDP1 --primary
+fi
+
+if [[ $1 = "detach" ]]
+then
+    xrandr --output VIRTUAL2 --off
+    xrandr --delmode VIRTUAL2 1280x800_tablet
+    xrandr --output VIRTUAL1 --off
+    xrandr --delmode VIRTUAL1 1280x800_tablet
+fi
+
+if [[ $1 = "left" ]]
+then
+    adb -s cf97e6ab076cfb49 reverse tcp:5900 tcp:5906
+    #x11vnc -usepw -dpms -noxdamage -noclipboard -viewonly -localhost -repeat -rfbport 5906 -ncache 0 -clip 800x1280+0+0
+    x11vnc -noxfixes -nocursorpos -nonap -forever -xdamage -xd_area 1024 -xd_mem 1.5 -usepw -dpms -noclipboard -viewonly -localhost -repeat -rfbport 5906 -ncache 0 -clip 800x1280+0+0
+    #x11vnc -usepw -dpms -noxdamage -noclipboard -localhost -repeat -rfbport 5906 -ncache 0 -clip 800x1280+0+0
+fi
+
+if [[ $1 = "right" ]]
+then
+    adb -s d36c2aac059cba61 reverse tcp:5900 tcp:5907
+    #x11vnc -usepw -dpms -noxdamage -noclipboard -viewonly -localhost -repeat -rfbport 5907 -ncache 0 -clip 1280x800+2720+0
+    x11vnc -noxfixes -nocursorpos -nonap -forever -xdamage -xd_area 1024 -xd_mem 1.5 -usepw -dpms -noclipboard -viewonly -localhost -repeat -rfbport 5907 -ncache 0 -clip 1280x800+2720+0
+    #x11vnc -usepw -dpms -noxdamage -noclipboard -localhost -repeat -rfbport 5907 -ncache 0 -clip 1280x800+2720+0
+fi
+exit
+# Associate mode to output
+xrandr --addmode VIRTUAL1 1280x800_tablet
+xrandr --addmode VIRTUAL2 1280x800_tablet
+
+# Associate mode/screen/position
+xrandr --output VIRTUAL1 --rotate left --mode 1280x800_tablet --left-of eDP1
+xrandr --output VIRTUAL2 --mode 1280x800_tablet --right-of eDP1
+xrandr --output eDP1 --primary
+# forwarding through USB
+# sm-t530 (left)
+# sm-t531 (right)
+adb -s cf97e6ab076cfb49 reverse tcp:5900 tcp:5906
+x11vnc -usepw -noxdamage -noclipboard -viewonly -localhost -repeat -rfbport 5906 -ncache 0 -clip 800x1280+0+0
+
+
+adb -s d36c2aac059cba61 reverse tcp:5900 tcp:5907
+x11vnc -usepw -noxdamage -noclipboard -viewonly -localhost -repeat -rfbport 5907 -ncache 0 -clip 1280x800+2720+0
+
+
+
+# Launch left screen clipping
+# Launch right screen clipping
+#x11vnc -localhost -noskip-dups -noxdamage -rfbport 5906 -clip 800x1280+0+0
+#x11vnc -localhost -noskip-dups -noxdamage -rfbport 5907 -clip 800x1280+2720+0
+x11vnc -localhost -nowireframelocal -nowireframe -nowirecopyrect -repeat -rfbport 5906 -clip 800x1280+0+0
+x11vnc -localhost -nowireframelocal -nowireframe -nowirecopyrect -repeat -rfbport 5907 -clip 800x1280+2720+0
+
+x11vnc -usepw -localhost -nowireframelocal -nowf -noscr -noxkb -noxfixes -repeat -noxwarppointer -rfbport 5906 -ncache 0 -clip 800x1280+0+0
+x11vnc -usepw -localhost -nowireframelocal -nowf -noscr -noxkb -noxfixes -repeat -noxwarppointer -rfbport 5907 -ncache 0 -clip 1280x800+2720+0
+# Off
+xrandr --output VIRTUAL1 --off
+xrandr --output VIRTUAL2 --off
+
+# Remove mode
+
+
+x11vnc -usepw -noxdamage -noclipboard -viewonly -localhost -repeat -rfbport 5906 -ncache 0 -clip 800x1280+0+0
+x11vnc -usepw -noxdamage -noclipboard -viewonly -localhost -repeat -rfbport 5907 -ncache 0 -clip 1280x800+2720+0
