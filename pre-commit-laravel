@@ -1,0 +1,98 @@
+#!/usr/bin/env bash
+# Hook that checks PHP syntax
+
+# Where are we?
+path=$(pwd)
+[ ! -d $path/node_modules/.bin ] && exit 1
+[ ! -f $path/node_modules/.bin/eslint ] && exit 1
+[ ! -f $path/node_modules/.bin/stylelint ] && exit 1
+[ ! -d $path/vendor/bin ] && exit 1
+[ ! -f $path/vendor/bin/phpcs ] && exit 1
+
+# Override IFS so that spaces do not count as delimiters
+old_ifs=$IFS
+IFS=$'\n'
+
+echo "* hook: `basename $0`: check file syntax"
+result=0
+files=$(git status --porcelain | grep -E '\.(php|js[x]?|css)$' |grep -E "^ ?[MAC]" | awk '{ print $2 }')
+for file in $files; do
+    case ${file##*.} in
+        php)
+            echo "PHP syntax"
+            php -l $file
+            result=$?
+            if [[ $result -gt 0 ]]; then
+                exit $result
+            fi
+
+            #echo "Code Sniffer"
+            #$path/vendor/bin/phpcs $file
+            #result=$?
+            #if [[ $result -gt 0 ]]; then
+            #    exit $result
+            #fi
+
+            #echo "PHP mess detector"
+            #phpmd $file ansi unusedcode
+            #result=$?
+            #if [[ $result -gt 0 ]]; then
+                #exit $result
+            #fi
+
+            #echo "PHP mess detector"
+            #phpmd $file ansi naming
+            #result=$?
+            #if [[ $result -gt 0 ]]; then
+                #exit $result
+            #fi
+
+            #echo "CPD"
+            #phpcpd $file
+            #result=$?
+            #if [[ $result -gt 0 ]]; then
+                #exit $result
+            #fi
+
+            ;;
+
+        js|jsx)
+            FOUND=0
+            while read l; do
+                if [[ $l =~ ^[^#] ]]; then
+                    if [[ $(find $path/$l -name $file 2>&1 >/dev/null) ]]; then
+                        FOUND=1
+                    fi
+                fi
+            done < ./.eslintignore
+
+            [[ $FOUND ]] && continue
+
+            $path/node_modules/.bin/eslint $file
+            result=$?
+            if [[ $result -gt 0 ]]; then
+                exit $result
+            fi
+            ;;
+
+        #js)
+            #if [[ $file == build/src/* ]]; then
+                #$path/node_modules/.bin/eslint $file
+            #else
+                #node --check $file && echo $file : no errors
+            #fi
+            #;;
+        #jsx)
+            #$path/node_modules/.bin/eslint $file
+            #;;
+
+        css)
+            $path/node_modules/.bin/stylelint $file
+            result=$?
+            if [[ $result -gt 0 ]]; then
+                exit $result
+            fi
+            #csslint --format=compact --warnings=false $file
+            ;;
+    esac
+done

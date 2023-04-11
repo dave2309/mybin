@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+n() {
+    $EDITOR ~/code/notes/"$*".txt
+}
+
+nls() {
+    ls -c ~/code/notes/ | grep "$*"
+}
+
+v() {
+    [[ -d /srv/tom/web-"$*" ]] && cd /srv/tom/web-"$*"
+}
+
+

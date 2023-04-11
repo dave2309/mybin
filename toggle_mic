@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+#current=$(sed "s/$(pacmd list|grep "active port"|grep -oE "analog-input-(\w+)-mic")//")
+current=$(pacmd list|grep "active port"|grep -oE "analog-input-(\w+)-mic")
+echo "cur input: $current"
+
+new=$(echo 'analog-input-headset-mic analog-input-internal-mic'|sed "s/$current//;s/ //g")
+echo "new input: $new"
+
+pacmd set-source-port alsa_input.pci-0000_00_1f.3.analog-stereo $new

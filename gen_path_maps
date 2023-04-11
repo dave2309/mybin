@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+PRJ="${1:-lrvl}"
+HERE=$(pwd)
+THERE="/srv/${PRJ}.dev.timesofmalta.com/source/1"
+
+echo -n "{'$THERE':'$HERE'"
+for l in $(grep -oE "PATH(.*)ENDPATH" storage/framework/views/*.php |sed -e 's/PATH \(.*\) ENDPATH/\1/')
+do
+    var1=${l%:*}
+    var2=${l#*:}
+    var2=${var2#*1/}
+    #var2=$(echo $var2|sed -e 's#\/srv\/\(*.\)\.dev\.timesofmalta\.com\/source\/1\/##')
+    echo -n ",'$THERE/$var1':'$HERE/$var2'"
+done
+echo -n "}"

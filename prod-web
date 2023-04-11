@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+urxvtc -e ssh -t srv-wds01 juju ssh --proxy wb4/0 &
+urxvtc -e ssh -t srv-wds01 juju ssh --proxy wb4/1 &
+urxvtc -e ssh -t srv-wds01 juju ssh --proxy wb4/2 &

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+urxvtc -e ssh -t srv-wds01 juju ssh --proxy db0/0 "sudo mysql tom20190610"

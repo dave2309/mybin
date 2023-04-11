@@ -6,14 +6,17 @@ if [ $? -gt 0 ]; then
     tmux new-session -s pad -d -n htop htop
     tmux new-window -n atop atop
     #tmux new-session -s pad -d -n glances glances
-    tmux new-window -n jnettop sudo jnettop -i wlp58s0
-    tmux new-window -n bmon sudo bmon
+    tmux new-window -n jnettop sudo jnettop -i wlp0s20f3
+    #tmux new-window -n bmon sudo bmon
+    #tmux new-window -n nload sudo nload -i 20480 wlp0s20f3
+    tmux new-window -n speedometer sudo speedometer -r wlp0s20f3 -t wlp0s20f3
     tmux new-window -n syslog journalctl -f
     tmux new-window -n ranger ranger
     #tmux new-window -n weechat weechat
     tmux new-window -n weechat bash
     #tmux new-window -n display xtra-screens left
     #tmux split-window xtra-screens right
+    tmux new-window -n newsboat newsboat
     tmux new-window -n bash bash
     #tmux new-window -t scratchpad:3 -n htop htop
     tmux attach-session -t pad -d
